@@ -32,4 +32,40 @@ class DBStorage:
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
+        db_Dict = {}
+        if cls:
+            if type(cls) is str:
+                cls = eval(cls)
+            for i in self.__session.query(cls):
+                key = f'{type(i).__name__}.{i.id}'
+                db_Dict[key] = i
+            else:
+                allClasses = [Amenity, City, Place, Review, State, User]
+                for eachCls in allClasses:
+                    for ii in self.__session.query(eachCls):
+                        key = f'{type(ii).__name__}.(ii.id}'
+                        db_Dict[key] = ii
+           return db_Dict
+
+    def new(self, obj):
+        """Adding instance to database"""
+        self.__session.add(obj)
+
+    def save(self):
+        """commit all changes of the current database"""
+        self.__session.commit()
+
+    def delete(self, obj=None):
+        """delete from database session"""
+        if obj:
+            self.__session.delete(obj)
+
+    def reload(self):
+        """reloads from database"""
+        Base.metadata.create_all(self.__engine)
+        sess_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        Session = scoped_session(sess_factory)
+        self.__session = Session
+
+
 
